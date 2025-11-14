@@ -186,6 +186,16 @@ POST /api/v1/auth/login
 - `GET /api/v1/settings/{key}` - Get specific setting
 - `PATCH /api/v1/settings/{key}` - Update setting (Admin only)
 
+### Payment Vouchers
+- `POST /api/v1/vouchers/generate/{payment_id}` - Generate payment voucher PDF (Admin/Treasurer)
+- `GET /api/v1/vouchers/download/{voucher_id}` - Download voucher PDF
+- `PATCH /api/v1/vouchers/{voucher_id}/status` - Update voucher status (Admin/Treasurer)
+
+### Exports & Imports
+- `GET /api/v1/exports/monthly-summary/{month}` - Export monthly summary to Excel (Admin/Treasurer)
+- `GET /api/v1/exports/payment-register` - Export payment register to Excel (Admin/Treasurer)
+- `POST /api/v1/exports/import-purchases` - Import bond purchases from Excel (Admin only)
+
 ## 🧮 Bond Calculator
 
 The system includes a sophisticated Bond Calculator service that handles:
@@ -285,15 +295,23 @@ Additional documentation is available in the following guides:
 - ✅ Category-based Settings Organization
 - ✅ Admin-controlled Settings Management
 
+### Document Generation & Export
+- ✅ Payment Voucher PDF Generation (ReportLab)
+- ✅ Monthly Summary Excel Export
+- ✅ Payment Register Excel Export
+- ✅ Bond Purchase Excel Import
+- ✅ Email Notifications (Payment, Maturity Reminders, Welcome)
+
 ## 🎯 Roadmap
 
-### Phase 1: Backend (In Progress)
+### Phase 1: Backend (Completed)
 - ✅ Core API endpoints
 - ✅ Authentication system
 - ✅ Bond calculator
-- 🔄 Payment voucher PDF generation
-- 🔄 Excel import/export
-- 🔄 Background tasks with Celery
+- ✅ Payment voucher PDF generation
+- ✅ Excel import/export
+- ✅ Email notification service
+- 🔄 Background tasks with Celery (Optional)
 
 ### Phase 2: Frontend (Upcoming)
 - React application setup
@@ -307,8 +325,9 @@ Additional documentation is available in the following guides:
 - Docker deployment
 - CI/CD pipeline
 - Monitoring and logging
-- Email notifications
+- ✅ Email notifications
 - Automated backups
+- Celery scheduled tasks for automated processing
 
 ## 🤝 Contributing
 
