@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
-from app.api.v1 import auth, bonds, payments
+from app.api.v1 import auth, bonds, payments, reports, notifications, settings as settings_router
 
 # Create FastAPI app
 app = FastAPI(
@@ -26,6 +26,9 @@ app.add_middleware(
 app.include_router(auth.router, prefix="/api/v1")
 app.include_router(bonds.router, prefix="/api/v1")
 app.include_router(payments.router, prefix="/api/v1")
+app.include_router(reports.router, prefix="/api/v1")
+app.include_router(notifications.router, prefix="/api/v1")
+app.include_router(settings_router.router, prefix="/api/v1")
 
 
 @app.get("/")

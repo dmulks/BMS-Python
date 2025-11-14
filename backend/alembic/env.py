@@ -7,7 +7,7 @@ from alembic import context
 
 # Import your models here
 from app.core.database import Base
-from app.models import user, bond, payment, fee
+from app.models import user, bond, payment, fee, balance, audit, notification, settings
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

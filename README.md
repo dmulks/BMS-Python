@@ -98,6 +98,7 @@ alembic upgrade head
 ```bash
 python scripts/create_admin.py
 python scripts/init_data.py
+python scripts/init_settings.py
 ```
 
 7. **Start Server**
@@ -120,6 +121,11 @@ uvicorn app.main:app --reload
 5. **coupon_payments** - Interest payment tracking
 6. **payment_vouchers** - Payment forms
 7. **fee_structure** - Configurable fees
+8. **member_balances** - Monthly balance snapshots
+9. **monthly_summaries** - Pre-calculated dashboard summaries
+10. **audit_logs** - Complete audit trail
+11. **notifications** - System notifications
+12. **system_settings** - Configurable settings
 
 ## 🔐 Authentication
 
@@ -159,6 +165,26 @@ POST /api/v1/auth/login
 - `GET /api/v1/payments/coupons` - List coupon payments
 - `GET /api/v1/payments/coupons/{id}` - Get payment details
 - `PATCH /api/v1/payments/coupons/{id}/status` - Update payment status
+
+### Reports
+- `POST /api/v1/reports/generate-monthly-summary` - Generate monthly summary
+- `POST /api/v1/reports/generate-member-balances` - Generate member balances
+- `GET /api/v1/reports/monthly-summaries` - List monthly summaries
+- `GET /api/v1/reports/member-balances` - List member balances
+- `GET /api/v1/reports/portfolio/{user_id}` - Get member portfolio
+- `GET /api/v1/reports/dashboard` - Get dashboard data
+
+### Notifications
+- `GET /api/v1/notifications/` - List notifications
+- `GET /api/v1/notifications/unread` - Get unread notifications
+- `GET /api/v1/notifications/unread/count` - Get unread count
+- `PATCH /api/v1/notifications/{id}/read` - Mark as read
+- `PATCH /api/v1/notifications/read-all` - Mark all as read
+
+### Settings
+- `GET /api/v1/settings/` - List system settings
+- `GET /api/v1/settings/{key}` - Get specific setting
+- `PATCH /api/v1/settings/{key}` - Update setting (Admin only)
 
 ## 🧮 Bond Calculator
 
@@ -221,6 +247,7 @@ Additional documentation is available in the following guides:
 
 ## ✨ Features Implemented
 
+### Core Features
 - ✅ JWT Authentication
 - ✅ Role-based Access Control (Admin, Treasurer, Member)
 - ✅ Bond Type Management
@@ -232,6 +259,31 @@ Additional documentation is available in the following guides:
 - ✅ API Documentation (Swagger/ReDoc)
 - ✅ Database Migrations (Alembic)
 - ✅ Unit Tests
+
+### Reporting & Analytics
+- ✅ Monthly Summary Reports
+- ✅ Member Balance Tracking
+- ✅ Portfolio Reports
+- ✅ Dashboard Data (Role-based)
+- ✅ Payment Registers
+
+### Notifications & Alerts
+- ✅ System Notifications
+- ✅ Payment Due Notifications
+- ✅ Payment Processed Notifications
+- ✅ Maturity Approaching Warnings
+- ✅ Interest Rate Update Alerts
+
+### Audit & Compliance
+- ✅ Complete Audit Trail
+- ✅ Action Logging (CREATE, UPDATE, DELETE)
+- ✅ User Activity Tracking
+- ✅ IP Address & User Agent Logging
+
+### System Configuration
+- ✅ Configurable System Settings
+- ✅ Category-based Settings Organization
+- ✅ Admin-controlled Settings Management
 
 ## 🎯 Roadmap
 
