@@ -59,7 +59,7 @@ export default function Payments() {
       {(isAdmin || isTreasurer) && (
         <Grid container spacing={3} sx={{ mt: 2, mb: 4 }}>
           <Grid item xs={12}>
-            <PaymentCalculator />
+            <PaymentCalculator onSuccess={fetchPayments} />
           </Grid>
         </Grid>
       )}

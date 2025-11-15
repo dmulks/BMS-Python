@@ -2,15 +2,17 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from datetime import datetime
+from typing import List
 
 from app.core.database import get_db
 from app.core.security import (
     verify_password,
     get_password_hash,
     create_access_token,
-    get_current_user
+    get_current_user,
+    require_role
 )
-from app.models.user import User
+from app.models.user import User, UserRole
 from app.schemas.user import UserCreate, UserResponse, Token
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
@@ -88,3 +90,29 @@ def login(
 def get_current_user_info(current_user: User = Depends(get_current_user)):
     """Get current authenticated user information."""
     return current_user
+
+
+@router.get("/users", response_model=List[UserResponse])
+def list_users(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_role("admin", "treasurer"))
+):
+    """List all users (admin and treasurer only)."""
+    users = db.query(User).order_by(User.created_at.desc()).all()
+    return users
+
+
+@router.get("/users/{user_id}", response_model=UserResponse)
+def get_user(
+    user_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_role("admin", "treasurer"))
+):
+    """Get user by ID (admin and treasurer only)."""
+    user = db.query(User).filter(User.user_id == user_id).first()
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
+        )
+    return user

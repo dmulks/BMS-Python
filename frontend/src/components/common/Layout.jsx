@@ -7,7 +7,7 @@ import {
 } from '@mui/material';
 import {
   Dashboard, AccountBalance, Payment,
-  Assessment, ExitToApp
+  Assessment, ExitToApp, People
 } from '@mui/icons-material';
 
 export default function Layout({ children }) {
@@ -65,14 +65,24 @@ export default function Layout({ children }) {
             </Button>
 
             {(isAdmin || isTreasurer) && (
-              <Button
-                color="inherit"
-                startIcon={<Assessment />}
-                component={RouterLink}
-                to="/reports"
-              >
-                Reports
-              </Button>
+              <>
+                <Button
+                  color="inherit"
+                  startIcon={<Assessment />}
+                  component={RouterLink}
+                  to="/reports"
+                >
+                  Reports
+                </Button>
+                <Button
+                  color="inherit"
+                  startIcon={<People />}
+                  component={RouterLink}
+                  to="/users"
+                >
+                  Users
+                </Button>
+              </>
             )}
           </Box>
 

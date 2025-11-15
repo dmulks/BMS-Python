@@ -10,6 +10,7 @@ import Dashboard from './pages/Dashboard';
 import Bonds from './pages/Bonds';
 import Payments from './pages/Payments';
 import Reports from './pages/Reports';
+import Users from './pages/Users';
 import Layout from './components/common/Layout';
 
 const theme = createTheme({
@@ -65,6 +66,14 @@ function App() {
               element={
                 <ProtectedRoute>
                   <Reports />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/users"
+              element={
+                <ProtectedRoute>
+                  <Users />
                 </ProtectedRoute>
               }
             />

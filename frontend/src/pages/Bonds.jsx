@@ -5,8 +5,9 @@ import {
   Table, TableBody, TableCell, TableContainer,
   TableHead, TableRow, Paper, Chip, CircularProgress
 } from '@mui/material';
-import { Add } from '@mui/icons-material';
+import { Add, Upload } from '@mui/icons-material';
 import BondPurchaseForm from '../components/bonds/BondPurchaseForm';
+import ExcelImportDialog from '../components/bonds/ExcelImportDialog';
 import client from '../api/client';
 import toast from 'react-hot-toast';
 
@@ -15,6 +16,7 @@ export default function Bonds() {
   const [bonds, setBonds] = useState([]);
   const [loading, setLoading] = useState(true);
   const [formOpen, setFormOpen] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
 
   useEffect(() => {
     fetchBonds();
@@ -57,13 +59,22 @@ export default function Bonds() {
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
         <Typography variant="h4">Bond Purchases</Typography>
         {(isAdmin || isTreasurer) && (
-          <Button
-            variant="contained"
-            startIcon={<Add />}
-            onClick={() => setFormOpen(true)}
-          >
-            New Purchase
-          </Button>
+          <Box sx={{ display: 'flex', gap: 2 }}>
+            <Button
+              variant="outlined"
+              startIcon={<Upload />}
+              onClick={() => setImportOpen(true)}
+            >
+              Import Excel
+            </Button>
+            <Button
+              variant="contained"
+              startIcon={<Add />}
+              onClick={() => setFormOpen(true)}
+            >
+              New Purchase
+            </Button>
+          </Box>
         )}
       </Box>
 
@@ -82,12 +93,21 @@ export default function Bonds() {
             </TableRow>
           </TableHead>
           <TableBody>
-            {bonds.map((bond) => (
-              <TableRow key={bond.purchase_id}>
-                <TableCell>{bond.transaction_reference}</TableCell>
-                <TableCell>
-                  {bond.user?.first_name} {bond.user?.last_name}
+            {bonds.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={8} align="center">
+                  <Typography variant="body2" color="text.secondary" sx={{ py: 3 }}>
+                    No bond purchases found
+                  </Typography>
                 </TableCell>
+              </TableRow>
+            ) : (
+              bonds.map((bond) => (
+                <TableRow key={bond.purchase_id}>
+                  <TableCell>{bond.transaction_reference}</TableCell>
+                  <TableCell>
+                    {bond.user ? `${bond.user.first_name} ${bond.user.last_name}` : `User ID: ${bond.user_id}`}
+                  </TableCell>
                 <TableCell>
                   {new Date(bond.purchase_date).toLocaleDateString()}
                 </TableCell>
@@ -105,13 +125,14 @@ export default function Bonds() {
                 </TableCell>
                 <TableCell>
                   <Chip
-                    label={bond.bond_status}
-                    color={getStatusColor(bond.bond_status)}
+                    label={bond.purchase_status}
+                    color={getStatusColor(bond.purchase_status)}
                     size="small"
                   />
                 </TableCell>
               </TableRow>
-            ))}
+            ))
+          )}
           </TableBody>
         </Table>
       </TableContainer>
@@ -119,6 +140,12 @@ export default function Bonds() {
       <BondPurchaseForm
         open={formOpen}
         onClose={() => setFormOpen(false)}
+        onSuccess={fetchBonds}
+      />
+
+      <ExcelImportDialog
+        open={importOpen}
+        onClose={() => setImportOpen(false)}
         onSuccess={fetchBonds}
       />
     </Container>

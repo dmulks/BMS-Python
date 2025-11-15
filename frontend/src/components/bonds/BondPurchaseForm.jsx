@@ -68,7 +68,7 @@ export default function BondPurchaseForm({ open, onClose, onSuccess }) {
       <DialogTitle>New Bond Purchase</DialogTitle>
       <form onSubmit={handleSubmit(onSubmit)}>
         <DialogContent>
-          <Grid container spacing={2}>
+          <Grid container spacing={3}>
             <Grid item xs={12}>
               <Controller
                 name="user_id"
@@ -81,6 +81,15 @@ export default function BondPurchaseForm({ open, onClose, onSuccess }) {
                     label="Member"
                     error={!!errors.user_id}
                     helperText={errors.user_id?.message}
+                    InputLabelProps={{ shrink: true }}
+                    SelectProps={{
+                      displayEmpty: true,
+                      renderValue: (selected) => {
+                        if (!selected) return <em style={{ color: '#999' }}>Select a member</em>;
+                        const member = members.find(m => m.user_id === selected);
+                        return member ? `${member.first_name} ${member.last_name} - ${member.email}` : '';
+                      }
+                    }}
                   >
                     {members.map((member) => (
                       <MenuItem key={member.user_id} value={member.user_id}>
@@ -104,6 +113,15 @@ export default function BondPurchaseForm({ open, onClose, onSuccess }) {
                     label="Bond Type"
                     error={!!errors.bond_type_id}
                     helperText={errors.bond_type_id?.message}
+                    InputLabelProps={{ shrink: true }}
+                    SelectProps={{
+                      displayEmpty: true,
+                      renderValue: (selected) => {
+                        if (!selected) return <em style={{ color: '#999' }}>Select bond type</em>;
+                        const bondType = bondTypes.find(bt => bt.bond_type_id === selected);
+                        return bondType ? bondType.bond_name : '';
+                      }
+                    }}
                   >
                     {bondTypes.map((type) => (
                       <MenuItem key={type.bond_type_id} value={type.bond_type_id}>
@@ -133,7 +151,7 @@ export default function BondPurchaseForm({ open, onClose, onSuccess }) {
               />
             </Grid>
 
-            <Grid item xs={12} sm={6}>
+            <Grid item xs={12}>
               <Controller
                 name="bond_shares"
                 control={control}
@@ -150,7 +168,7 @@ export default function BondPurchaseForm({ open, onClose, onSuccess }) {
               />
             </Grid>
 
-            <Grid item xs={12} sm={6}>
+            <Grid item xs={12}>
               <Controller
                 name="discount_rate"
                 control={control}
@@ -160,9 +178,10 @@ export default function BondPurchaseForm({ open, onClose, onSuccess }) {
                     type="number"
                     inputProps={{ step: 0.01, min: 0, max: 1 }}
                     fullWidth
-                    label="Discount Rate (0.10 = 10%)"
+                    label="Discount Rate"
+                    placeholder="0.10"
                     error={!!errors.discount_rate}
-                    helperText={errors.discount_rate?.message}
+                    helperText={errors.discount_rate?.message || "Enter as decimal (e.g., 0.10 = 10%)"}
                   />
                 )}
               />

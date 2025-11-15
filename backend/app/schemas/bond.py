@@ -5,6 +5,18 @@ from decimal import Decimal
 from app.models.bond import PurchaseStatus
 
 
+class UserInfo(BaseModel):
+    """Simplified user info for bond purchase display."""
+    user_id: int
+    first_name: str
+    last_name: str
+    email: str
+    username: str
+
+    class Config:
+        from_attributes = True
+
+
 class BondTypeBase(BaseModel):
     """Base bond type schema."""
     bond_name: str
@@ -84,6 +96,8 @@ class BondPurchaseResponse(BaseModel):
     transaction_reference: Optional[str]
     notes: Optional[str]
     created_at: datetime
+    user: Optional[UserInfo] = None
+    bond_type: Optional[BondTypeResponse] = None
 
     class Config:
         from_attributes = True

@@ -7,7 +7,7 @@ import {
 import toast from 'react-hot-toast';
 import client from '../../api/client';
 
-export default function PaymentCalculator() {
+export default function PaymentCalculator({ onSuccess }) {
   const [dates, setDates] = useState({
     period_start_date: '',
     period_end_date: ''
@@ -18,11 +18,14 @@ export default function PaymentCalculator() {
   const handleCalculate = async () => {
     setLoading(true);
     try {
-      const response = await client.post('/payments/calculate-coupons', dates);
+      const response = await client.post(
+        `/payments/calculate-coupons?period_start=${dates.period_start_date}&period_end=${dates.period_end_date}`
+      );
       setResults(response.data);
       toast.success('Calculations completed');
     } catch (error) {
-      toast.error('Calculation failed');
+      console.error('Calculation error:', error);
+      toast.error(error.response?.data?.detail || 'Calculation failed');
     } finally {
       setLoading(false);
     }
@@ -31,14 +34,17 @@ export default function PaymentCalculator() {
   const handleProcess = async () => {
     setLoading(true);
     try {
-      const response = await client.post('/payments/calculate-coupons', {
-        ...dates,
-        create_payments: true
-      });
-      toast.success(`${response.data.payments_created || 0} payments processed`);
+      const response = await client.post(
+        `/payments/calculate-coupons?period_start=${dates.period_start_date}&period_end=${dates.period_end_date}&create_payments=true`
+      );
+      toast.success(`${response.data.count || 0} payments processed`);
       setResults(null);
+      if (onSuccess) {
+        onSuccess();
+      }
     } catch (error) {
-      toast.error('Processing failed');
+      console.error('Processing error:', error);
+      toast.error(error.response?.data?.detail || 'Processing failed');
     } finally {
       setLoading(false);
     }
@@ -51,7 +57,7 @@ export default function PaymentCalculator() {
           Coupon Payment Calculator
         </Typography>
 
-        <Grid container spacing={2} sx={{ mt: 2 }}>
+        <Grid container spacing={3} sx={{ mt: 2 }}>
           <Grid item xs={12} sm={6}>
             <TextField
               fullWidth
@@ -60,6 +66,8 @@ export default function PaymentCalculator() {
               value={dates.period_start_date}
               onChange={(e) => setDates({ ...dates, period_start_date: e.target.value })}
               InputLabelProps={{ shrink: true }}
+              helperText="Select the start date for coupon calculation period"
+              required
             />
           </Grid>
           <Grid item xs={12} sm={6}>
@@ -70,9 +78,19 @@ export default function PaymentCalculator() {
               value={dates.period_end_date}
               onChange={(e) => setDates({ ...dates, period_end_date: e.target.value })}
               InputLabelProps={{ shrink: true }}
+              helperText="Select the end date for coupon calculation period"
+              required
             />
           </Grid>
         </Grid>
+
+        {!dates.period_start_date || !dates.period_end_date ? (
+          <Box sx={{ mt: 3, p: 2, bgcolor: 'info.lighter', borderRadius: 1 }}>
+            <Typography variant="body2" color="info.dark">
+              Please select both Period Start Date and Period End Date to enable the Calculate button
+            </Typography>
+          </Box>
+        ) : null}
 
         <Box sx={{ mt: 3 }}>
           <Button

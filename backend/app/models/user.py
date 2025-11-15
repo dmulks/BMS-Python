@@ -32,7 +32,11 @@ class User(Base):
 
     # Relationships
     bond_purchases = relationship("BondPurchase", back_populates="user")
-    coupon_payments = relationship("CouponPayment", back_populates="user")
+    coupon_payments = relationship(
+        "CouponPayment",
+        foreign_keys="CouponPayment.user_id",
+        back_populates="user"
+    )
     interest_rates_entered = relationship(
         "InterestRate",
         foreign_keys="InterestRate.entered_by",

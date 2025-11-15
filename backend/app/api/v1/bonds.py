@@ -1,13 +1,15 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Query
-from sqlalchemy.orm import Session
-from typing import List
-from datetime import date
+from fastapi import APIRouter, Depends, HTTPException, status, Query, UploadFile, File
+from sqlalchemy.orm import Session, joinedload
+from typing import List, Optional
+from datetime import date, datetime
 from decimal import Decimal
+import pandas as pd
+import io
 
 from app.core.database import get_db
-from app.core.security import get_current_user, require_role
-from app.models.user import User
-from app.models.bond import BondType, InterestRate, BondPurchase
+from app.core.security import get_current_user, require_role, get_password_hash
+from app.models.user import User, UserRole
+from app.models.bond import BondType, InterestRate, BondPurchase, PurchaseStatus
 from app.schemas.bond import (
     BondTypeCreate,
     BondTypeResponse,
@@ -150,6 +152,13 @@ def create_bond_purchase(
     db.add(db_purchase)
     db.commit()
     db.refresh(db_purchase)
+
+    # Reload with relationships
+    db_purchase = db.query(BondPurchase).options(
+        joinedload(BondPurchase.user),
+        joinedload(BondPurchase.bond_type)
+    ).filter(BondPurchase.purchase_id == db_purchase.purchase_id).first()
+
     return db_purchase
 
 
@@ -161,7 +170,10 @@ def get_bond_purchases(
     current_user: User = Depends(get_current_user)
 ):
     """Get bond purchases, optionally filtered by user and/or bond type."""
-    query = db.query(BondPurchase)
+    query = db.query(BondPurchase).options(
+        joinedload(BondPurchase.user),
+        joinedload(BondPurchase.bond_type)
+    )
 
     # Members can only see their own purchases
     if current_user.user_role.value == "member":
@@ -182,7 +194,10 @@ def get_bond_purchase(
     current_user: User = Depends(get_current_user)
 ):
     """Get a specific bond purchase by ID."""
-    purchase = db.query(BondPurchase).filter(BondPurchase.purchase_id == purchase_id).first()
+    purchase = db.query(BondPurchase).options(
+        joinedload(BondPurchase.user),
+        joinedload(BondPurchase.bond_type)
+    ).filter(BondPurchase.purchase_id == purchase_id).first()
 
     if not purchase:
         raise HTTPException(
@@ -198,3 +213,170 @@ def get_bond_purchase(
         )
 
     return purchase
+
+
+# Excel Import Endpoint
+@router.post("/import-excel")
+async def import_excel(
+    file: UploadFile = File(...),
+    purchase_date: Optional[str] = Query(None, description="Purchase date in YYYY-MM-DD format"),
+    bond_type_name: str = Query("2-Year Bond", description="Bond type name"),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_role("admin", "treasurer"))
+):
+    """Import users and bond purchases from Excel file (Admin/Treasurer only)."""
+
+    # Validate file type
+    if not file.filename.endswith(('.xlsx', '.xls')):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="File must be an Excel file (.xlsx or .xls)"
+        )
+
+    # Parse purchase date
+    if purchase_date:
+        try:
+            parsed_date = datetime.strptime(purchase_date, "%Y-%m-%d").date()
+        except ValueError:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Invalid date format. Use YYYY-MM-DD"
+            )
+    else:
+        parsed_date = date.today()
+
+    # Get bond type
+    bond_type = db.query(BondType).filter(BondType.bond_name == bond_type_name).first()
+    if not bond_type:
+        available_types = db.query(BondType).filter(BondType.is_active == True).all()
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Bond type '{bond_type_name}' not found. Available types: {[bt.bond_name for bt in available_types]}"
+        )
+
+    # Read Excel file
+    try:
+        contents = await file.read()
+        df = pd.read_excel(io.BytesIO(contents), sheet_name=0, header=1)
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Failed to read Excel file: {str(e)}"
+        )
+
+    # Import statistics
+    stats = {
+        "users_created": 0,
+        "users_updated": 0,
+        "bonds_created": 0,
+        "errors": []
+    }
+
+    # Process each row
+    for index, row in df.iterrows():
+        try:
+            # Skip rows without bond shares or with 0 shares
+            if pd.isna(row.get('Bond Shares')) or float(row.get('Bond Shares', 0)) == 0:
+                continue
+
+            # Extract user data
+            email = str(row['Email']).strip().lower()
+            first_name = str(row['First Name']).strip()
+            last_name = str(row['Last Name']).strip()
+
+            # Validate email
+            if '@' not in email:
+                stats["errors"].append(f"Row {index + 2}: Invalid email '{email}'")
+                continue
+
+            # Create or update user
+            user = db.query(User).filter(User.email == email).first()
+
+            if not user:
+                # Create new user
+                username = email.split('@')[0]
+                user = User(
+                    username=username,
+                    email=email,
+                    password_hash=get_password_hash("change123"),
+                    first_name=first_name,
+                    last_name=last_name,
+                    user_role=UserRole.MEMBER,
+                    is_active=True
+                )
+                db.add(user)
+                db.flush()
+                stats["users_created"] += 1
+            else:
+                # Update existing user if names changed
+                if user.first_name != first_name or user.last_name != last_name:
+                    user.first_name = first_name
+                    user.last_name = last_name
+                    stats["users_updated"] += 1
+
+            # Extract bond data
+            bond_shares = float(row['Bond Shares'])
+            face_value = float(row['FACE Value '])  # Note trailing space
+            discount_value = float(row['Discount Value Paid on Maturity'])
+
+            # Calculate values
+            coop_discount_fee = discount_value * Decimal("0.02")
+            net_discount_value = Decimal(str(discount_value)) - coop_discount_fee
+            purchase_price = Decimal(str(face_value)) - Decimal(str(discount_value))
+            purchase_month = date(parsed_date.year, parsed_date.month, 1)
+            maturity_date = date(
+                parsed_date.year + bond_type.maturity_period_years,
+                parsed_date.month,
+                parsed_date.day
+            )
+
+            # Check for duplicates
+            existing = db.query(BondPurchase).filter(
+                BondPurchase.user_id == user.user_id,
+                BondPurchase.bond_type_id == bond_type.bond_type_id,
+                BondPurchase.purchase_date == parsed_date,
+                BondPurchase.face_value == Decimal(str(face_value))
+            ).first()
+
+            if existing:
+                continue
+
+            # Create bond purchase
+            bond_purchase = BondPurchase(
+                user_id=user.user_id,
+                bond_type_id=bond_type.bond_type_id,
+                purchase_date=parsed_date,
+                purchase_month=purchase_month,
+                bond_shares=Decimal(str(bond_shares)),
+                face_value=Decimal(str(face_value)),
+                discount_value=Decimal(str(discount_value)),
+                coop_discount_fee=coop_discount_fee,
+                net_discount_value=net_discount_value,
+                purchase_price=purchase_price,
+                maturity_date=maturity_date,
+                purchase_status=PurchaseStatus.ACTIVE,
+                transaction_reference=f"TXN{parsed_date.strftime('%Y%m%d')}{user.user_id:04d}"
+            )
+
+            db.add(bond_purchase)
+            stats["bonds_created"] += 1
+
+        except Exception as e:
+            stats["errors"].append(f"Row {index + 2}: {str(e)}")
+            continue
+
+    # Commit all changes
+    try:
+        db.commit()
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to save data: {str(e)}"
+        )
+
+    return {
+        "success": True,
+        "message": "Import completed successfully",
+        "statistics": stats
+    }

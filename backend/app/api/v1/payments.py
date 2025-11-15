@@ -19,12 +19,14 @@ router = APIRouter(prefix="/payments", tags=["Payments"])
 def calculate_coupon_payments(
     period_start: date = Query(...),
     period_end: date = Query(...),
+    create_payments: bool = Query(False),
     db: Session = Depends(get_db),
     current_user: User = Depends(require_role("admin", "treasurer"))
 ):
     """
     Calculate coupon payments for a specific period.
-    This will create pending payment records for all active bonds.
+    If create_payments is True, this will create pending payment records.
+    Otherwise, it returns a preview of calculations.
     """
     # Get all active bond purchases
     active_purchases = db.query(BondPurchase).filter(
@@ -32,7 +34,9 @@ def calculate_coupon_payments(
         BondPurchase.purchase_date <= period_end
     ).all()
 
-    payments_created = []
+    calculations = []
+    total_gross = Decimal("0")
+    total_net = Decimal("0")
 
     for purchase in active_purchases:
         # Determine payment type
@@ -63,33 +67,54 @@ def calculate_coupon_payments(
             calendar_days=calendar_days
         )
 
-        # Create payment record
-        db_payment = CouponPayment(
-            purchase_id=purchase.purchase_id,
-            user_id=purchase.user_id,
-            payment_type=payment_type,
-            payment_date=period_end,
-            payment_period_start=calc_start,
-            payment_period_end=calc_end,
-            calendar_days=calendar_days,
-            gross_coupon_amount=payment_calc["gross_coupon"],
-            withholding_tax=payment_calc["withholding_tax"],
-            boz_fees=payment_calc["boz_fees"],
-            coop_fees=payment_calc["coop_fees"],
-            net_payment_amount=payment_calc["net_payment"],
-            payment_status=PaymentStatus.PENDING,
-            payment_reference=f"PAY{period_end.strftime('%Y%m%d')}{purchase.purchase_id:06d}"
-        )
+        # Add to calculations
+        calculations.append({
+            "user_id": purchase.user_id,
+            "purchase_id": purchase.purchase_id,
+            "payment_type": payment_type.value,
+            "gross_coupon": float(payment_calc["gross_coupon"]),
+            "net_payment": float(payment_calc["net_payment"]),
+            "calendar_days": calendar_days
+        })
 
-        db.add(db_payment)
-        payments_created.append(db_payment)
+        total_gross += payment_calc["gross_coupon"]
+        total_net += payment_calc["net_payment"]
 
-    db.commit()
+        # Create payment record if requested
+        if create_payments:
+            db_payment = CouponPayment(
+                purchase_id=purchase.purchase_id,
+                user_id=purchase.user_id,
+                payment_type=payment_type,
+                payment_date=period_end,
+                payment_period_start=calc_start,
+                payment_period_end=calc_end,
+                calendar_days=calendar_days,
+                gross_coupon_amount=payment_calc["gross_coupon"],
+                withholding_tax=payment_calc["withholding_tax"],
+                boz_fees=payment_calc["boz_fees"],
+                coop_fees=payment_calc["coop_fees"],
+                net_payment_amount=payment_calc["net_payment"],
+                payment_status=PaymentStatus.PENDING,
+                payment_reference=f"PAY{period_end.strftime('%Y%m%d')}{purchase.purchase_id:06d}"
+            )
+            db.add(db_payment)
 
-    return {
-        "message": f"Created {len(payments_created)} coupon payment records",
-        "count": len(payments_created)
-    }
+    if create_payments:
+        db.commit()
+        return {
+            "message": f"Created {len(calculations)} coupon payment records",
+            "count": len(calculations),
+            "payments_created": len(calculations)
+        }
+    else:
+        return {
+            "message": "Calculation preview",
+            "calculations": calculations,
+            "calculations_count": len(calculations),
+            "total_gross_amount": float(total_gross),
+            "total_net_amount": float(total_net)
+        }
 
 
 @router.get("/coupons", response_model=List[CouponPaymentResponse])
