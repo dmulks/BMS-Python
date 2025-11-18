@@ -81,3 +81,68 @@ class BondPurchase(Base):
 
     def __repr__(self):
         return f"<BondPurchase {self.transaction_reference} - {self.bond_shares} shares>"
+
+
+class BondTypeEnum(str, enum.Enum):
+    """Bond type enum for bond issues."""
+    TWO_YEAR = "TWO_YEAR"
+    FIVE_YEAR = "FIVE_YEAR"
+    SEVEN_YEAR = "SEVEN_YEAR"
+    FIFTEEN_YEAR = "FIFTEEN_YEAR"
+
+
+class BondIssue(Base):
+    """
+    Bond issue model for cooperative bond investments.
+    Represents a specific bond batch with fixed rates and dates.
+    """
+    __tablename__ = "bond_issues"
+
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    issuer = Column(String(100), nullable=False)
+    issue_name = Column(String(200), nullable=False, index=True)
+    issue_date = Column(Date, nullable=False, index=True)
+    maturity_date = Column(Date, nullable=False, index=True)
+    bond_type = Column(Enum(BondTypeEnum), nullable=False)
+    coupon_rate = Column(Numeric(8, 6), nullable=False)  # Annual coupon rate (e.g., 0.1850)
+    discount_rate = Column(Numeric(8, 6), nullable=False)  # Maturity discount rate (e.g., 0.2050)
+    face_value_per_unit = Column(Numeric(15, 2), nullable=True, default=1.00)
+    withholding_tax_rate = Column(Numeric(5, 2), nullable=False, default=15.0)  # Percentage
+    boz_fee_rate = Column(Numeric(5, 2), nullable=False, default=1.0)  # Percentage
+    coop_fee_rate = Column(Numeric(5, 2), nullable=False, default=2.0)  # Percentage
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+
+    # Relationships
+    member_holdings = relationship("MemberBondHolding", back_populates="bond_issue")
+    payment_events = relationship("PaymentEvent", back_populates="bond_issue")
+
+    def __repr__(self):
+        return f"<BondIssue {self.issue_name} ({self.bond_type.value})>"
+
+
+class MemberBondHolding(Base):
+    """
+    Member bond holding snapshots.
+    Tracks each member's position in a specific bond issue as of a given date.
+    """
+    __tablename__ = "member_bond_holdings"
+
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    member_id = Column(Integer, ForeignKey("users.user_id"), nullable=False, index=True)
+    bond_id = Column(Integer, ForeignKey("bond_issues.id"), nullable=False, index=True)
+    as_of_date = Column(Date, nullable=False, index=True)
+    bond_shares = Column(Numeric(15, 2), nullable=False, default=0)
+    opening_balance = Column(Numeric(15, 2), nullable=True, default=0)
+    total_bond_share = Column(Numeric(15, 2), nullable=True, default=0)
+    percentage_share = Column(Numeric(8, 6), nullable=True, default=0)
+    award_value_plus_balance_bf = Column(Numeric(15, 2), nullable=True, default=0)
+    variance_cf_next_period = Column(Numeric(15, 2), nullable=True, default=0)
+    member_face_value = Column(Numeric(15, 2), nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+
+    # Relationships
+    member = relationship("User", foreign_keys=[member_id])
+    bond_issue = relationship("BondIssue", back_populates="member_holdings")
+
+    def __repr__(self):
+        return f"<MemberBondHolding Member {self.member_id} Bond {self.bond_id} - {self.bond_shares} shares>"

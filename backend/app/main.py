@@ -1,7 +1,11 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
-from app.api.v1 import auth, bonds, payments, reports, notifications, settings as settings_router, vouchers, exports
+from app.api.v1 import (
+    auth, bonds, payments, reports, notifications,
+    settings as settings_router, vouchers, exports,
+    dashboard, members, payment_events, admin
+)
 
 # Create FastAPI app
 app = FastAPI(
@@ -23,9 +27,20 @@ app.add_middleware(
 )
 
 # Include routers
+# Authentication
 app.include_router(auth.router, prefix="/api/v1")
+
+# Bond Management (original purchase system)
 app.include_router(bonds.router, prefix="/api/v1")
 app.include_router(payments.router, prefix="/api/v1")
+
+# Bond Issues System (new cooperative system)
+app.include_router(dashboard.router, prefix="/api/v1")
+app.include_router(members.router, prefix="/api/v1")
+app.include_router(payment_events.router, prefix="/api/v1")
+app.include_router(admin.router, prefix="/api/v1")
+
+# Reporting & Utilities
 app.include_router(reports.router, prefix="/api/v1")
 app.include_router(notifications.router, prefix="/api/v1")
 app.include_router(settings_router.router, prefix="/api/v1")

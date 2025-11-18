@@ -89,3 +89,79 @@ class PaymentVoucher(Base):
 
     def __repr__(self):
         return f"<PaymentVoucher {self.voucher_number} - {self.voucher_status.value}>"
+
+
+class EventType(str, enum.Enum):
+    """Payment event type enum."""
+    DISCOUNT_MATURITY = "DISCOUNT_MATURITY"
+    COUPON_SEMI_ANNUAL = "COUPON_SEMI_ANNUAL"
+
+
+class PaymentEvent(Base):
+    """
+    Payment events for bond issues (maturity or coupon events).
+    Defines when payments should be calculated and distributed.
+    """
+    __tablename__ = "payment_events"
+
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    bond_id = Column(Integer, ForeignKey("bond_issues.id"), nullable=False, index=True)
+    event_type = Column(Enum(EventType), nullable=False)
+    event_name = Column(String(200), nullable=False)
+    payment_date = Column(Date, nullable=False, index=True)
+    calculation_period = Column(String(100), nullable=True)
+    base_rate = Column(Numeric(8, 6), nullable=True)  # Override rate if needed
+    withholding_tax_rate = Column(Numeric(5, 2), nullable=True)
+    boz_fee_rate = Column(Numeric(5, 2), nullable=True)
+    coop_fee_rate = Column(Numeric(5, 2), nullable=True)
+    boz_award_amount = Column(Numeric(15, 2), nullable=True, default=0)  # Total BOZ award for distribution
+    expected_total_net_maturity = Column(Numeric(15, 2), nullable=True, default=0)
+    expected_total_net_coupon = Column(Numeric(15, 2), nullable=True, default=0)
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+
+    # Relationships
+    bond_issue = relationship("BondIssue", back_populates="payment_events")
+    member_payments = relationship("MemberPayment", back_populates="payment_event")
+
+    def __repr__(self):
+        return f"<PaymentEvent {self.event_name} - {self.event_type.value}>"
+
+
+class MemberPayment(Base):
+    """
+    Calculated payment records per member per event.
+    Stores all payment breakdown fields for audit and reporting.
+    """
+    __tablename__ = "member_payments"
+
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    member_id = Column(Integer, ForeignKey("users.user_id"), nullable=False, index=True)
+    bond_id = Column(Integer, ForeignKey("bond_issues.id"), nullable=False, index=True)
+    payment_event_id = Column(Integer, ForeignKey("payment_events.id"), nullable=False, index=True)
+
+    # BOZ Award fields (for maturity)
+    boz_award_value = Column(Numeric(15, 2), nullable=True, default=0)
+
+    # Discount value fields (for maturity)
+    base_amount = Column(Numeric(15, 2), nullable=True, default=0)  # Discount Value
+    coop_discount_fee = Column(Numeric(15, 2), nullable=True, default=0)
+    net_discount_value = Column(Numeric(15, 2), nullable=True, default=0)
+
+    # Coupon payment fields
+    gross_coupon_from_boz = Column(Numeric(15, 2), nullable=True, default=0)
+    withholding_tax = Column(Numeric(15, 2), nullable=True, default=0)
+    boz_fee = Column(Numeric(15, 2), nullable=True, default=0)
+    coop_fee_on_coupon = Column(Numeric(15, 2), nullable=True, default=0)
+    net_maturity_coupon = Column(Numeric(15, 2), nullable=True, default=0)
+    net_coupon_payment = Column(Numeric(15, 2), nullable=True, default=0)
+
+    calculation_period = Column(String(100), nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+
+    # Relationships
+    member = relationship("User", foreign_keys=[member_id])
+    bond_issue = relationship("BondIssue", foreign_keys=[bond_id])
+    payment_event = relationship("PaymentEvent", back_populates="member_payments")
+
+    def __repr__(self):
+        return f"<MemberPayment Member {self.member_id} Event {self.payment_event_id}>"

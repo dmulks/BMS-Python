@@ -1,6 +1,6 @@
 from app.models.user import User, UserRole
-from app.models.bond import BondType, InterestRate, BondPurchase, PurchaseStatus
-from app.models.payment import CouponPayment, PaymentType, PaymentStatus, PaymentVoucher, VoucherStatus
+from app.models.bond import BondType, InterestRate, BondPurchase, PurchaseStatus, BondTypeEnum, BondIssue, MemberBondHolding
+from app.models.payment import CouponPayment, PaymentType, PaymentStatus, PaymentVoucher, VoucherStatus, EventType, PaymentEvent, MemberPayment
 from app.models.fee import FeeStructure, FeeType, AppliesTo
 from app.models.balance import MemberBalance, MonthlySummary
 from app.models.audit import AuditLog
@@ -14,11 +14,17 @@ __all__ = [
     "InterestRate",
     "BondPurchase",
     "PurchaseStatus",
+    "BondTypeEnum",
+    "BondIssue",
+    "MemberBondHolding",
     "CouponPayment",
     "PaymentType",
     "PaymentStatus",
     "PaymentVoucher",
     "VoucherStatus",
+    "EventType",
+    "PaymentEvent",
+    "MemberPayment",
     "FeeStructure",
     "FeeType",
     "AppliesTo",
