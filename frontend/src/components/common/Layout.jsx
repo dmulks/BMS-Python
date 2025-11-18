@@ -7,13 +7,14 @@ import {
 } from '@mui/material';
 import {
   Dashboard, AccountBalance, Payment,
-  Assessment, ExitToApp, People
+  Assessment, ExitToApp, People, AdminPanelSettings
 } from '@mui/icons-material';
 
 export default function Layout({ children }) {
   const navigate = useNavigate();
   const { currentUser, logout, isAdmin, isTreasurer } = useAuth();
   const [anchorEl, setAnchorEl] = React.useState(null);
+  const [adminMenuAnchor, setAdminMenuAnchor] = React.useState(null);
 
   const handleMenu = (event) => {
     setAnchorEl(event.currentTarget);
@@ -21,6 +22,14 @@ export default function Layout({ children }) {
 
   const handleClose = () => {
     setAnchorEl(null);
+  };
+
+  const handleAdminMenu = (event) => {
+    setAdminMenuAnchor(event.currentTarget);
+  };
+
+  const handleAdminClose = () => {
+    setAdminMenuAnchor(null);
   };
 
   const handleLogout = () => {
@@ -82,6 +91,25 @@ export default function Layout({ children }) {
                 >
                   Users
                 </Button>
+                <Button
+                  color="inherit"
+                  startIcon={<AdminPanelSettings />}
+                  onClick={handleAdminMenu}
+                >
+                  Admin
+                </Button>
+                <Menu
+                  anchorEl={adminMenuAnchor}
+                  open={Boolean(adminMenuAnchor)}
+                  onClose={handleAdminClose}
+                >
+                  <MenuItem onClick={() => { navigate('/admin/audit'); handleAdminClose(); }}>
+                    Audit Report
+                  </MenuItem>
+                  <MenuItem onClick={() => { navigate('/admin/boz-upload'); handleAdminClose(); }}>
+                    BOZ Statement Upload
+                  </MenuItem>
+                </Menu>
               </>
             )}
           </Box>

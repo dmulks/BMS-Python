@@ -11,6 +11,11 @@ import Bonds from './pages/Bonds';
 import Payments from './pages/Payments';
 import Reports from './pages/Reports';
 import Users from './pages/Users';
+import BondDetail from './pages/BondDetail';
+import BondPaymentPreview from './pages/BondPaymentPreview';
+import MemberPaymentsReport from './pages/MemberPaymentsReport';
+import AdminAuditReport from './pages/AdminAuditReport';
+import BozStatementUpload from './pages/BozStatementUpload';
 import Layout from './components/common/Layout';
 
 const theme = createTheme({
@@ -74,6 +79,46 @@ function App() {
               element={
                 <ProtectedRoute>
                   <Users />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/bonds/:bondId"
+              element={
+                <ProtectedRoute>
+                  <BondDetail />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/bonds/:bondId/events/:eventId/preview"
+              element={
+                <ProtectedRoute>
+                  <BondPaymentPreview />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/members/:memberId/payments"
+              element={
+                <ProtectedRoute>
+                  <MemberPaymentsReport />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/audit"
+              element={
+                <ProtectedRoute>
+                  <AdminAuditReport />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/boz-upload"
+              element={
+                <ProtectedRoute>
+                  <BozStatementUpload />
                 </ProtectedRoute>
               }
             />
