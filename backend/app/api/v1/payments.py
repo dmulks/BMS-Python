@@ -21,7 +21,7 @@ def calculate_coupon_payments(
     period_end: date = Query(...),
     create_payments: bool = Query(False),
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_role("admin", "treasurer"))
+    current_user: User = Depends(require_role("admin", "account_manager", "treasurer"))
 ):
     """
     Calculate coupon payments for a specific period.
@@ -169,7 +169,7 @@ def update_payment_status(
     payment_id: int,
     new_status: PaymentStatus,
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_role("admin", "treasurer"))
+    current_user: User = Depends(require_role("admin", "account_manager", "treasurer"))
 ):
     """Update payment status (Admin/Treasurer only)."""
     payment = db.query(CouponPayment).filter(CouponPayment.payment_id == payment_id).first()

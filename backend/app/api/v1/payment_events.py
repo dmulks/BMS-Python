@@ -45,7 +45,7 @@ def create_payment_event(
     bond_id: int,
     event_data: PaymentEventCreate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_role("admin", "treasurer"))
+    current_user: User = Depends(require_role("admin", "account_manager", "treasurer"))
 ):
     """
     Create a new payment event for a bond issue (Admin/Treasurer only).
@@ -213,7 +213,7 @@ def generate_payments(
     bond_id: int,
     event_id: int = Query(...),
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_role("admin", "treasurer"))
+    current_user: User = Depends(require_role("admin", "account_manager", "treasurer"))
 ):
     """
     Generate and save payment records for a specific event (Admin/Treasurer only).
@@ -271,7 +271,7 @@ def recalculate_payments(
     bond_id: int,
     event_id: int = Query(...),
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_role("admin", "treasurer"))
+    current_user: User = Depends(require_role("admin", "account_manager", "treasurer"))
 ):
     """
     Delete existing payments and regenerate them for an event (Admin/Treasurer only).
@@ -319,7 +319,7 @@ def update_payment_event(
     event_id: int,
     event_data: PaymentEventUpdate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_role("admin", "treasurer"))
+    current_user: User = Depends(require_role("admin", "account_manager", "treasurer"))
 ):
     """
     Update a payment event (Admin/Treasurer only).

@@ -314,12 +314,23 @@ class PaymentCalculatorService:
 
         payments = []
         for payment, event, bond, user in results:
+            # Get member's bond holding for shares and face value
+            holding = db.query(MemberBondHolding).filter(
+                MemberBondHolding.member_id == member_id,
+                MemberBondHolding.bond_id == payment.bond_id
+            ).first()
+
+            bond_shares = float(holding.bond_shares) if holding else 0
+            member_face_value = float(holding.member_face_value) if holding else 0
+
             payments.append({
                 "payment_id": payment.id,
                 "member_id": payment.member_id,
                 "member_name": f"{user.first_name} {user.last_name}",
                 "bond_id": payment.bond_id,
                 "bond_name": bond.issue_name,
+                "bond_shares": bond_shares,
+                "member_face_value": member_face_value,
                 "event_id": payment.payment_event_id,
                 "event_name": event.event_name,
                 "event_type": event.event_type.value,

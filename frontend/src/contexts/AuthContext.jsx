@@ -50,8 +50,11 @@ export function AuthProvider({ children }) {
     logout,
     isAuthenticated: !!currentUser,
     isAdmin: currentUser?.user_role === 'admin',
+    isAccountManager: currentUser?.user_role === 'account_manager',
     isTreasurer: currentUser?.user_role === 'treasurer',
     isMember: currentUser?.user_role === 'member',
+    // Helper: can manage system (admin or account_manager)
+    canManage: currentUser?.user_role === 'admin' || currentUser?.user_role === 'account_manager',
   };
 
   return (

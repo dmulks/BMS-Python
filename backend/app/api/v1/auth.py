@@ -95,7 +95,7 @@ def get_current_user_info(current_user: User = Depends(get_current_user)):
 @router.get("/users", response_model=List[UserResponse])
 def list_users(
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_role("admin", "treasurer"))
+    current_user: User = Depends(require_role("admin", "account_manager", "treasurer"))
 ):
     """List all users (admin and treasurer only)."""
     users = db.query(User).order_by(User.created_at.desc()).all()
@@ -106,7 +106,7 @@ def list_users(
 def get_user(
     user_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_role("admin", "treasurer"))
+    current_user: User = Depends(require_role("admin", "account_manager", "treasurer"))
 ):
     """Get user by ID (admin and treasurer only)."""
     user = db.query(User).filter(User.user_id == user_id).first()

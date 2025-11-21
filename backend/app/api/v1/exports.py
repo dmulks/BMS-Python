@@ -15,7 +15,7 @@ router = APIRouter(prefix="/exports", tags=["Exports"])
 def export_monthly_summary(
     month: date,
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_role("admin", "treasurer"))
+    current_user: User = Depends(require_role("admin", "account_manager", "treasurer"))
 ):
     """
     Export monthly summary to Excel (Admin/Treasurer only).
@@ -55,7 +55,7 @@ def export_payment_register(
     start_date: date = Query(...),
     end_date: date = Query(...),
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_role("admin", "treasurer"))
+    current_user: User = Depends(require_role("admin", "account_manager", "treasurer"))
 ):
     """
     Export payment register to Excel (Admin/Treasurer only).
@@ -87,7 +87,7 @@ def export_payment_register(
 def import_bond_purchases(
     file: UploadFile = File(...),
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_role("admin"))
+    current_user: User = Depends(require_role("admin", "account_manager"))
 ):
     """
     Import bond purchases from Excel (Admin only).

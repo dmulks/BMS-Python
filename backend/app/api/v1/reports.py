@@ -17,7 +17,7 @@ router = APIRouter(prefix="/reports", tags=["Reports"])
 def generate_monthly_summary(
     month: date = Query(..., description="First day of month to summarize"),
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_role("admin", "treasurer"))
+    current_user: User = Depends(require_role("admin", "account_manager", "treasurer"))
 ):
     """
     Generate monthly summary report (Admin/Treasurer only).
@@ -44,7 +44,7 @@ def generate_monthly_summary(
 def generate_member_balances(
     month: date = Query(..., description="First day of month"),
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_role("admin", "treasurer"))
+    current_user: User = Depends(require_role("admin", "account_manager", "treasurer"))
 ):
     """
     Generate member balance snapshots for all members (Admin/Treasurer only).

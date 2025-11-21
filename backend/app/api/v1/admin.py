@@ -16,7 +16,7 @@ router = APIRouter(prefix="/admin", tags=["Admin"])
 @router.get("/audit", response_model=dict)
 def get_audit_report(
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_role("admin", "treasurer"))
+    current_user: User = Depends(require_role("admin", "account_manager", "treasurer"))
 ):
     """
     Get audit report comparing calculated totals vs expected BOZ totals.
@@ -56,7 +56,7 @@ def get_audit_report(
 async def upload_boz_statement(
     file: UploadFile = File(...),
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_role("admin", "treasurer"))
+    current_user: User = Depends(require_role("admin", "account_manager", "treasurer"))
 ):
     """
     Upload BOZ statement CSV to set expected totals for payment events.
@@ -152,7 +152,7 @@ async def upload_boz_statement(
 @router.get("/bond-issues", response_model=List[dict])
 def get_all_bond_issues(
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_role("admin", "treasurer"))
+    current_user: User = Depends(require_role("admin", "account_manager", "treasurer"))
 ):
     """
     Get all bond issues with summary statistics (Admin/Treasurer only).

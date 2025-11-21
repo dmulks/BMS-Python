@@ -51,7 +51,7 @@ def update_setting(
     setting_key: str,
     setting_update: SystemSettingUpdate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_role("admin"))
+    current_user: User = Depends(require_role("admin", "account_manager"))
 ):
     """Update a system setting (Admin only)."""
     setting = db.query(SystemSetting).filter(

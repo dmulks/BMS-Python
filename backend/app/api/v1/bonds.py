@@ -28,7 +28,7 @@ router = APIRouter(prefix="/bonds", tags=["Bonds"])
 def create_bond_type(
     bond_type_data: BondTypeCreate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_role("admin"))
+    current_user: User = Depends(require_role("admin", "account_manager"))
 ):
     """Create a new bond type (Admin only)."""
     db_bond_type = BondType(**bond_type_data.dict())
@@ -52,7 +52,7 @@ def get_bond_types(
 def create_interest_rate(
     rate_data: InterestRateCreate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_role("admin", "treasurer"))
+    current_user: User = Depends(require_role("admin", "account_manager", "treasurer"))
 ):
     """Create a new interest rate (Admin/Treasurer only)."""
     # Calculate daily rate
@@ -105,7 +105,7 @@ def get_interest_rates(
 def create_bond_purchase(
     purchase_data: BondPurchaseCreate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_role("admin", "treasurer"))
+    current_user: User = Depends(require_role("admin", "account_manager", "treasurer"))
 ):
     """Create a new bond purchase (Admin/Treasurer only)."""
     # Verify user exists
@@ -222,7 +222,7 @@ async def import_excel(
     purchase_date: Optional[str] = Query(None, description="Purchase date in YYYY-MM-DD format"),
     bond_type_name: str = Query("2-Year Bond", description="Bond type name"),
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_role("admin", "treasurer"))
+    current_user: User = Depends(require_role("admin", "account_manager", "treasurer"))
 ):
     """Import users and bond purchases from Excel file (Admin/Treasurer only)."""
 

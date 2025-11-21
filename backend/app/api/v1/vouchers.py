@@ -17,7 +17,7 @@ def generate_voucher(
     payment_id: int,
     send_email: bool = False,
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_role("admin", "treasurer"))
+    current_user: User = Depends(require_role("admin", "account_manager", "treasurer"))
 ):
     """
     Generate a payment voucher PDF (Admin/Treasurer only).
@@ -107,7 +107,7 @@ def update_voucher_status(
     voucher_id: int,
     new_status: str,
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_role("admin", "treasurer"))
+    current_user: User = Depends(require_role("admin", "account_manager", "treasurer"))
 ):
     """Update voucher status (Admin/Treasurer only)."""
     voucher = db.query(PaymentVoucher).filter(
