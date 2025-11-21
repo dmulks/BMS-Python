@@ -1,17 +1,19 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import {
   Container, Typography, Button, Box,
   Table, TableBody, TableCell, TableContainer,
   TableHead, TableRow, Paper, Chip, CircularProgress
 } from '@mui/material';
-import { Add, Upload } from '@mui/icons-material';
+import { Add, Upload, AccountBalance } from '@mui/icons-material';
 import BondPurchaseForm from '../components/bonds/BondPurchaseForm';
 import ExcelImportDialog from '../components/bonds/ExcelImportDialog';
 import client from '../api/client';
 import toast from 'react-hot-toast';
 
 export default function Bonds() {
+  const navigate = useNavigate();
   const { isAdmin, isTreasurer, currentUser } = useAuth();
   const [bonds, setBonds] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -60,6 +62,14 @@ export default function Bonds() {
         <Typography variant="h4">Bond Purchases</Typography>
         {(isAdmin || isTreasurer) && (
           <Box sx={{ display: 'flex', gap: 2 }}>
+            <Button
+              variant="contained"
+              color="primary"
+              startIcon={<AccountBalance />}
+              onClick={() => navigate('/bonds/1')}
+            >
+              View Bond Issues
+            </Button>
             <Button
               variant="outlined"
               startIcon={<Upload />}

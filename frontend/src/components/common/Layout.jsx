@@ -7,7 +7,7 @@ import {
 } from '@mui/material';
 import {
   Dashboard, AccountBalance, Payment,
-  Assessment, ExitToApp, People, AdminPanelSettings
+  Assessment, ExitToApp, People, AdminPanelSettings, Description
 } from '@mui/icons-material';
 
 export default function Layout({ children }) {
@@ -73,6 +73,15 @@ export default function Layout({ children }) {
               Payments
             </Button>
 
+            <Button
+              color="inherit"
+              startIcon={<Description />}
+              component={RouterLink}
+              to="/documents"
+            >
+              Documents
+            </Button>
+
             {(isAdmin || isTreasurer) && (
               <>
                 <Button
@@ -108,6 +117,9 @@ export default function Layout({ children }) {
                   </MenuItem>
                   <MenuItem onClick={() => { navigate('/admin/boz-upload'); handleAdminClose(); }}>
                     BOZ Statement Upload
+                  </MenuItem>
+                  <MenuItem onClick={() => { navigate('/admin/documents'); handleAdminClose(); }}>
+                    All Documents
                   </MenuItem>
                 </Menu>
               </>

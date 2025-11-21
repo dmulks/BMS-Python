@@ -42,6 +42,7 @@ class User(Base):
         foreign_keys="InterestRate.entered_by",
         back_populates="entered_by_user"
     )
+    documents = relationship("MemberDocument", back_populates="user", cascade="all, delete-orphan")
 
     def __repr__(self):
         return f"<User {self.username} ({self.user_role.value})>"

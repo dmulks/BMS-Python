@@ -11,7 +11,8 @@ from app.api.v1 import (
     dashboard,
     members,
     payment_events,
-    admin
+    admin,
+    documents
 )
 
 __all__ = [
@@ -26,5 +27,6 @@ __all__ = [
     "dashboard",
     "members",
     "payment_events",
-    "admin"
+    "admin",
+    "documents"
 ]

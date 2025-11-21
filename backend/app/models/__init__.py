@@ -6,6 +6,7 @@ from app.models.balance import MemberBalance, MonthlySummary
 from app.models.audit import AuditLog
 from app.models.notification import Notification, NotificationType
 from app.models.settings import SystemSetting, SettingType
+from app.models.document import MemberDocument
 
 __all__ = [
     "User",
@@ -35,4 +36,5 @@ __all__ = [
     "NotificationType",
     "SystemSetting",
     "SettingType",
+    "MemberDocument",
 ]

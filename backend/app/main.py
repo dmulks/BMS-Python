@@ -4,7 +4,7 @@ from app.core.config import settings
 from app.api.v1 import (
     auth, bonds, payments, reports, notifications,
     settings as settings_router, vouchers, exports,
-    dashboard, members, payment_events, admin
+    dashboard, members, payment_events, admin, documents
 )
 
 # Create FastAPI app
@@ -46,6 +46,7 @@ app.include_router(notifications.router, prefix="/api/v1")
 app.include_router(settings_router.router, prefix="/api/v1")
 app.include_router(vouchers.router, prefix="/api/v1")
 app.include_router(exports.router, prefix="/api/v1")
+app.include_router(documents.router, prefix="/api/v1")
 
 
 @app.get("/")

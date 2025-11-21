@@ -16,6 +16,8 @@ import BondPaymentPreview from './pages/BondPaymentPreview';
 import MemberPaymentsReport from './pages/MemberPaymentsReport';
 import AdminAuditReport from './pages/AdminAuditReport';
 import BozStatementUpload from './pages/BozStatementUpload';
+import Documents from './pages/Documents';
+import AdminDocuments from './pages/AdminDocuments';
 import Layout from './components/common/Layout';
 
 const theme = createTheme({
@@ -119,6 +121,22 @@ function App() {
               element={
                 <ProtectedRoute>
                   <BozStatementUpload />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/documents"
+              element={
+                <ProtectedRoute>
+                  <Documents />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/documents"
+              element={
+                <ProtectedRoute>
+                  <AdminDocuments />
                 </ProtectedRoute>
               }
             />
